@@ -1,0 +1,469 @@
+\documentclass{article}
+\usepackage{import}
+\subimport*{}{macro}
+\usepackage{listings}
+
+
+\setlength\parindent{0px}
+
+\begin{document}
+\title{Homework \#0}
+\author{
+    \normalsize{CSE 546: Machine Learning}\\
+    \normalsize{Cassia Cai}\\
+    \normalsize{October 5, 2022}\\
+}
+\date{{}}
+\maketitle
+
+Collaborators: William Kumler, Apoorva Kalaskar, Madeleine Grunde-McLaughlin, Andrey Risukhin, Abbas Idris, and Chloe Yang
+
+\section*{Probability and Statistics}
+\begin{aprob}
+    \points{2} (From Murphy Exercise 2.4.) 
+    After your yearly checkup, the doctor has bad news and good news. 
+    The bad news is that you tested positive for a serious disease, and that the test is 99\% accurate (i.e., the probability of testing positive given that you have the disease is 0.99, as is the probability of testing negative given that you don't have the disease).
+    The good news is that this is a rare disease, striking only one in 10,000 people.
+    What are the chances that you actually have the disease?\\
+    
+    If you text positive, the chances that you actually have the disease is approx. 0.98\%.\\
+    
+    From the problem statement, we have information about the test sensitivity and the prior probability of this rare disease, where $x=1$ is the event that the test is positive, and $y=1$ is the event that you have the disease.
+    \begin{equation} p(x=1|y=1) = 0.99, p(x=1|y=0)=0.01 \end{equation}
+    \begin{equation} p(y=1) = 0.0001, p(y=0)=0.9999 \end{equation}
+    
+    Recall Bayes Theorem:
+    \begin{equation} 
+    p(X=x|Y=y)=\frac{p(X=x,Y=y)}{p(Y=y)} = \frac{p(X=x)p(Y=y|X=x}{\Sigma_{x'}p(X=x')p(Y=y|X=x')}
+    \end{equation}
+    
+    For our problem, we have:
+    \begin{equation} 
+    p(y=1|x=1)=\frac{p(y=1)p(x=1|y=1)}{p(y=1)p(x=1|y=1)+p(y=0)p(x=1|y=0)}
+    \end{equation}
+    \begin{equation} 
+    p(y=1|x=1) = \frac{0.0001 \times 0.99}{0.0001 \times 0.99 + 0.999 \times 0.01} = 0.0098
+    \end{equation}
+    
+    If you text positive, you only have a 0.98\% of actually having the disease!\\
+
+\end{aprob}
+\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
+\begin{aprob}
+    For any two random variables $X,Y$ the \emph{covariance} is defined as $\Cov{X}{Y}=\E{(X-\E{X})(Y-\E{Y})}$. 
+    \begin{enumerate}
+        \item \points{1} If $\E{Y\given X=x} = x$ show that $\Cov{X}{Y} = \E{\round{X-\E{X}}^2}$.  
+        
+        Starting from $\Cov{X}{Y}=\E{(X-\E{X})(Y-\E{Y})}$ and using linearity of expectation, we expand:
+        \begin{equation} 
+        \Cov{X}{Y}=\E{(X-\E{X})(Y-\E{Y})}
+        \end{equation}
+        \begin{equation} 
+        \Cov{X}{Y}=\E{XY}-\E{X\E{Y}}-\E{Y\E{X}}+\E{X}\E{Y}
+        \end{equation}
+        \begin{equation} 
+        \Cov{X}{Y}=\E{XY}-\E{X}\E{Y}
+        \end{equation}
+        
+        Let us now work with $\E{XY}$ and $\E{X}\E{Y}$:
+        
+        By the law of total expectation: 
+        \begin{equation} 
+        \E{XY} = \sum_{x} \P(X=x)\E{XY\given X=x} = \sum_{x} \P(X=x)x\E{Y\given X=x} = \sum_{x}\P(X=x)x^2 = \E{X^2}
+        \end{equation}
+        By the law of total expectation: 
+        \begin{equation} 
+        \E{Y} = \sum_{x} \P(X=x)\E{Y\given X=x} = \sum_{x} \P(X=x)x = \E{X}
+        \end{equation}
+        Now, we have $\E{XY}$ and $\E{X}\E{Y}$. Combining, we show that: 
+        \begin{equation}
+        \Cov{X}{Y} = \E{XY} - \E{X}\E{Y} = \E{X^2} - (\E{X})^2 = \E{\round{X-\E{X}}^2}
+        \end{equation}
+        
+        \item \points{1} If $X, Y$ are independent show that $\Cov{X}{Y}=0$.
+        
+        From above, $Cov(X,Y) = \E{XY}-\E{X}\E{Y}$. If $X, Y$ are independent:
+        \begin{equation}
+        \E{XY} = \sum_{x,y} \E{XY\given X=x, Y=y}\P(X=x, Y=y) = \sum_{x,y} xy \P(X=x, Y=y)
+        \end{equation}
+        \begin{equation}
+        \E{XY} = \sum_{x}x\P(X=x)\sum_{y}y\P(Y=y) = \E{X}\E{Y}
+        \end{equation}
+        So $Cov(X,Y) = \E{XY}-\E{X}\E{Y} = 0$
+        
+        
+    \end{enumerate}
+\end{aprob}
+\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
+\begin{aprob}
+    Let $X$ and $Y$ be independent random variables with PDFs given by $f$ and $g$, respectively.
+    Let $h$ be the PDF of the random variable $Z = X+Y$.
+    \begin{enumerate}
+        \item \points{1} Show that $h(z) = \int_{-\infty}^\infty f(x) g( z - x ) \diff x $.  (If you are more comfortable with discrete probabilities, you can instead derive an analogous expression for the discrete case,  and then you should give a one sentence explanation as to why your expression is analogous to the continuous case.).
+        
+        \begin{equation}
+        H(Z) = \P(Z \leq z) = \P(X + Y \leq z)
+        \end{equation}
+        The joint PDF of X,Y is $f_{X,Y} = f(x)g(y)$. 
+        \begin{equation}
+        H(Z) = \int \int_{x+y \leq z} f_{X,Y}(x,y) dxdy = \int \int_{x+y \leq z} f(x)g(y) dxdy = \int_{-\infty}^{\infty} f(x) \left( \int_{-\infty}^{z-x}g(y)dy \right) dx
+        \end{equation}
+        \begin{equation}
+        H(Z) = \int_{-\infty}^{\infty} G(z-x)f(x)dx
+        \end{equation}
+        \begin{equation}
+        h(z) = \frac{d}{dx}  H(Z) = \frac{d}{dx} \int_{-\infty}^{\infty}G(z-x)f(x)dx = \int_{-\infty}^{\infty}f(x)g(z-x)dx
+        \end{equation}
+        \item \points{1} If $X$ and $Y$ are both independent and uniformly distributed on $[0,1]$ (i.e. $f(x)=g(x)=1$ for $x \in [0,1]$ and $0$ otherwise) what is $h$, the PDF of $Z=X+Y$?
+        \begin{equation}
+        h(z) = \int_{-\infty}^{\infty}f(x)g(z-x)dx = \int_{0}^{1}g(z-x)dx
+        \end{equation}
+        We have $0 \leq z-x \leq 1$ and $z-1 \leq x \leq z$. For $0 \leq z \leq 1$: $h(z) = \int_{0}^{z} dx = z$. For $1 	< z \leq 2$: $h(z) = \int_{z-1}^{1} dx = 2-z$. If not, $h(z) = 0$. 
+        \[ h(z)= \begin{cases} 
+        z & 0 \leq z \leq 1 \\
+        2-z & 1 < z \leq 2 \\
+        0 & otherwise 
+        \end{cases}
+        \]
+    \end{enumerate}
+
+\end{aprob}
+\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
+\begin{aprob}
+    Let $X_1, X_2, ..., X_n \sim \mathcal{N}(\mu, \sigma^2)$ be i.i.d random variables. Compute the following:
+    \begin{enumerate}
+        \item \points{1} $a\in{\mathbb R},b\in{\mathbb R}$ such that $aX_1+b \sim \mathcal{N}(0,1)$.
+        
+        We have RV $ X \sim \mathcal{N}(\mu, \sigma^2)$ which is Gaussian distributed with mean $\mu$ and variance $\sigma^2$. $Y = aX + b$ is also Gaussian where $Y \sim \mathcal{N}(0,1)$
+        \begin{equation}
+        \E{Y} = a\E{X} + b = 0 \rightarrow a\mu + b = 0 
+        \end{equation}
+        \begin{equation}
+        Var[Y] = a^2 Var[X] = 1
+        \rightarrow a^2 \sigma^2 = 1 
+        \end{equation}
+        We thus have 
+        $$ a = \frac{1}{\sigma}, b = \frac{-\mu}{\sigma}$$
+
+        \item \points{1} $\E{X_1 + 2X_2}, \Var{X_1 + 2X_2}$.
+        
+        $$\E{X_1 + 2X_2} = 3\mu$$
+        The expected value for X is $\mu$ so here, we have three of them. We can add them.
+        $$ \Var{X_1 + 2X_2} = 5\sigma^2 $$
+        This is from $\Var{X_1 + 2X_2} = \Var{X_1} + \Var{2X_2} = \sigma^2 + 4\sigma^2 = 5\sigma^2$
+        
+        \item \points{2} Setting $\widehat{\mu}_n = \frac{1}{n} \sum_{i=1}^n X_i$, the mean and variance of $\sqrt{n}(\widehat{\mu}_n - \mu)$.
+        
+        \begin{equation}
+        \E{\sqrt{n}(\widehat{\mu}_n - \mu)} = \sqrt{n} \E{(\widehat{\mu}_n} - \E{\mu)} = \sqrt{n} \E{\frac{1}{n} \sum_{i=1}^n X_i} - \E{\mu} = \sqrt{n} \E{\frac{1}{n}(n\mu)}-\E{\mu} = 0
+        \end{equation}
+        \begin{equation}
+        \Var{\sqrt{n}(\widehat{\mu}_n - \mu} = n\Var{\widehat{\mu}_n} + n\Var{\mu} = n\Var{\widehat{\mu}_n} = n\Var{\frac{1}{n} \sum_{i=1}^n X_i} = n \frac{\sigma^2}{n} = \sigma^2
+        \end{equation}
+        
+    \end{enumerate}
+
+\end{aprob}
+\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
+\section*{Linear Algebra and Vector Calculus}
+\begin{aprob}
+    Let $A = \begin{bmatrix} 1 & 2 & 1 \\ 1 & 0 & 3 \\ 1 & 1 & 2 \end{bmatrix}$ and $B = \begin{bmatrix} 1 & 2 & 3 \\ 1 & 0 & 1 \\ 1 & 1 & 2 \end{bmatrix}$.
+    For each matrix $A$ and $B$:
+    \begin{enumerate} 
+    	\item \points{2} What is its rank?\\
+    	The rank of a matrix is the number of non-zero rows in the RREF of the matrix.
+    	\begin{equation}
+    	    A = \begin{bmatrix} 1 & 2 & 1 \\ 1 & 0 & 3 \\ 1 & 1 & 2 \end{bmatrix} \xrightarrow{\text{(1)}} 
+    	    \begin{bmatrix} 0 & 1 & -1 \\ 1 & 0 & 3 \\ 1 & 1 & 2 \end{bmatrix} \xrightarrow{\text{(2)}}
+    	    \begin{bmatrix} 1 & 0 & 3 \\ 0 & 1 & -1 \\ 0 & 1 & -1 \end{bmatrix} \xrightarrow{\text{(3)}}
+    	    \begin{bmatrix} 1 & 0 & 3 \\ 0 & 1 & -1 \\ 0 & 0 & 0 \end{bmatrix} 
+    	\end{equation}
+    	We made matrix A into RREF by (1) row 1 - row 3 and swap row 2 and row 1, (2) row 3 - row 1, and (3) row 3 - row 2. The rank of matrix A, or $rank(A) = 2$.
+    	\begin{equation}
+    	    B = \begin{bmatrix} 1 & 2 & 1 \\ 1 & 0 & 1 \\ 1 & 1 & 2 \end{bmatrix} \xrightarrow{\text{(1)}} 
+    	    \begin{bmatrix} 1 & 0 & 1 \\ 1 & 1 & 2 \\ 1 & 2 & 3 \end{bmatrix} \xrightarrow{\text{(2)}}
+    	    \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \\ 1 & 2 & 3 \end{bmatrix} \xrightarrow{\text{(3)}}
+    	    \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \\ 0 & 2 & 2 \end{bmatrix} \xrightarrow{\text{(4)}}
+    	    \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 0 \end{bmatrix}
+    	\end{equation}
+    	We made matrix B into RREF by (1) swapping the rows, (2) row 2 - row 1, (3) row 3 - row 1, and (4) row 3 - 2 times row 2. The rank of matrix B, or $rank(B) = 2$.
+    	\item \points{2} What is a (minimal size) basis for its column span?
+    	
+    	We identify and count the number of linearly independent columns. The basis for its column span can be found from the RREF matrix by finding the columns that do not pivot. Using this information, we find that the minimal size basis for A and B's column space:
+    	$$\left\{\begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix}, \begin{bmatrix} 2 \\ 0 \\ 1 \end{bmatrix} \right\}$$
+
+    \end{enumerate}
+\end{aprob}
+\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
+\begin{aprob}\label{prob:linsystem}
+    Let $A = \begin{bmatrix} 0 & 2 & 4 \\ 2 & 4 & 2 \\ 3 & 3 & 1 \end{bmatrix}$, $b = \begin{bmatrix} -2 & -2 & -4 \end{bmatrix}^\top$, and $c=\begin{bmatrix} 1 & 1 & 1 \end{bmatrix}^\top$.
+    \begin{enumerate}
+    	\item \points{1} What is $Ac$?
+    	
+    	\begin{equation}
+    	Ac = \begin{bmatrix} 0 & 2 & 4 \\ 2 & 4 & 2 \\ 3 & 3 & 1 \end{bmatrix}\begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 0 + 2 + 4 \\ 2 + 4 + 2 \\ 3 + 3 + 1 \end{bmatrix} = \begin{bmatrix} 6 \\ 8 \\ 7 \end{bmatrix}
+    	\end{equation}
+    	
+    	\item \points{2} What is the solution to the linear system $Ax = b$?
+\begin{equation}    	
+\begin{bmatrix}
+    0 & 2 & 4 &\bigm|& -2 \\
+    2 & 4 & 2 &\bigm|& -2 \\
+    3 & 3 & 1 &\bigm|& -4
+\end{bmatrix} \xrightarrow{\text{(1)}} 
+\begin{bmatrix}
+    0 & 1 & 2 &\bigm|& -1 \\
+    1 & 2 & 1 &\bigm|& -1 \\
+    3 & 3 & 1 &\bigm|& -4
+\end{bmatrix} \xrightarrow{\text{(2)}}
+\begin{bmatrix}
+    1 & 2 & 1 &\bigm|& -1 \\
+    0 & 1 & 2 &\bigm|& -1 \\
+    3 & 3 & 1 &\bigm|& -4
+\end{bmatrix} \xrightarrow{\text{(3)}}
+\begin{bmatrix}
+    1 & 2 & 1 &\bigm|& -1 \\
+    0 & 1 & 2 &\bigm|& -1 \\
+    0 & -3 & -2 &\bigm|& -1
+\end{bmatrix} \xrightarrow{\text{(4)}}
+\end{equation}
+\begin{equation} 
+\begin{bmatrix}
+    1 & 2 & 1 &\bigm|& -1 \\
+    0 & 1 & 2 &\bigm|& -1 \\
+    0 & 0 & 1 &\bigm|& -1
+\end{bmatrix} \xrightarrow{\text{(5)}}
+\begin{bmatrix}
+    1 & 2 & 1 &\bigm|& -1 \\
+    0 & 1 & 0 &\bigm|& 1 \\
+    0 & 0 & 1 &\bigm|& -1
+\end{bmatrix} \xrightarrow{\text{(6)}}
+\begin{bmatrix}
+    1 & 0 & 1 &\bigm|& -3 \\
+    0 & 1 & 0 &\bigm|& 1 \\
+    0 & 0 & 1 &\bigm|& -1
+\end{bmatrix} \xrightarrow{\text{(7)}}
+\begin{bmatrix}
+    1 & 0 & 0 &\bigm|& -2 \\
+    0 & 1 & 0 &\bigm|& 1 \\
+    0 & 0 & 1 &\bigm|& -1
+\end{bmatrix}
+\end{equation}    
+
+We thus find $ x = \begin{bmatrix} -2 \\ 1 \\ -1 \end{bmatrix} $ \\
+We found this by doing the following steps: (1) Dividing rows 1 and 2 by 2, (2) Swapping rows 1 and 2, (3) row 3 - 3 times row 1, (4) row 3 + 3 times row 2 and then divide row 3 by 2, (5) row 2 - 2 times row 3, (6) row 1 - 2 times row 2, and (7) row 1 - row 3.
+
+    \end{enumerate}
+\end{aprob}
+\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
+\begin{aprob} \label{prob:sumvec}
+    For possibly non-symmetric $\mat{A}, \mat{B} \in \R^{n \times n}$ and $c \in \R$, let $f(x, y) = x^\top \mat{A} x + y^\top \mat{B} x + c$. Define
+    $$\nabla_z f(x,y) = \begin{bmatrix}
+        \pderiv{f}{z_1}(x,y) & \pderiv{f}{z_2}(x,y) & \dots & \pderiv{f}{z_n}(x,y)
+    \end{bmatrix}^\top \; \in{\mathbb R}^{n}\;.$$  
+    \begin{enumerate}
+    	\item \points{2} Explicitly write out the function $f(x, y)$ in terms of the components $A_{i,j}$ and $B_{i,j}$ using appropriate summations over the indices.
+    	
+    	$f(x,y) = 
+    	\begin{bmatrix} 
+    	    x_1 \\ \vdots \\ x_n 
+    	\end{bmatrix} 
+    	\begin{bmatrix} 
+            A_{11} & \dots  & A_{1n}\\
+            \vdots & \ddots & \vdots\\
+            A_{n1} & \dots  & A_{nn} 
+        \end{bmatrix}
+        \begin{bmatrix}
+            x_1 & \hdots & x_n 
+        \end{bmatrix} 
+        + 
+        \begin{bmatrix} 
+    	    y_1 \\ \vdots \\ y_n 
+    	\end{bmatrix} 
+    	\begin{bmatrix} 
+            B_{11} & \dots  & B_{1n}\\
+            \vdots & \ddots & \vdots\\
+            B_{n1} & \dots  & B_{nn} 
+        \end{bmatrix}
+        \begin{bmatrix}
+            x_1 & \hdots & x_n 
+        \end{bmatrix} 
+        $
+        
+        We recall that the definition of matrix multiplication is $c_{ij} = \sum_{k=1}^{n} a_{ij}b_{kj}$. Expressing as summations over indices, we get:
+        $$f(x,y) = \sum_{i=1}^{n} x_{i} \sum_{j=1}^{n} A_{ij}x_{j} + \sum_{i=1}^{n} y_{i} \sum_{j=1}^{n} B_{ij}x_{j} + c$$
+        
+    	\item \points{2} What is $\nabla_x f(x,y)$ in terms of the summations over indices \emph{and} vector notation?
+    	
+    	Let us expand along the first element of $x^T$, the first row of $\mat{A}$ and $x$. We thus have
+$$x_{1}A_{11}x_{1}+x_{1}A_{12}x_{2}+x_{1}A_{13}x_{3}+...+x_{1}A_{1n}x_{n}$$
+    	$$\frac{\partial}{\partial x_1} = 2x_{1}A_{11} + A_{12}x_{2} + A_{13}x_{3}+...+A_{1n}x_{n}$$
+    	$$\frac{\partial}{\partial x_k} = 2x_{k}A_{kk} + \sum_{i=1. j\neq k} A_{ki}x_{i} + \sum_{j=1. i\neq k} A_{jk}x_{j}$$
+    	
+    	We also need to find the partial derivative of $\sum_{i=1}^{n} y_{i} \sum_{j=1}^{n} B_{ij}x_{j} $
+    	
+    	We have:
+    	$$\frac{\partial}{\partial x_k} = y_{k}B_{kk}+y_{2}B_{2k}+...+y_{n}B_{nk} = \sum_{i=1} y_{i}B_{ik}$$
+    	Combining them, we get:
+    		$$\frac{\partial}{\partial x_k} = 2x_{k}A_{kk} + \sum_{i=1. j\neq k} A_{ki}x_{i} + \sum_{j=1. i\neq k} A_{jk}x_{j} + \sum_{i=1} y_{i}B_{ik}$$
+    		
+    		We can further simplify because $ \sum_{j=1}^{n} A_{jk}x_{j}=x_{k}A_{kk}+ \sum_{i=1, j \neq k}^{n}A_{jk}x_{j}$
+    	and $ \sum_{i=1}^{n} A_{ki}x_{i}=x_{k}A_{kk}+ \sum_{j=1, i \neq k}^{n}A_{ki}x_{i}$
+    	
+    	$$\frac{\partial}{\partial x_k} = \sum_{j=1}^{n} A_{jk}x_{j} + \sum_{i=1}^{n} A_{ki}x_{i} + \sum_{i=1}^{n} y_{i}B_{ik}$$
+    	
+    	$$\frac{\partial}{\partial x_k} = \sum_{i=1}^{n} \left( A_{ik}x_{i} + A_{ki}x_{i} + y_{i}B_{ik} \right)$$
+    	
+    	$$ \nabla_x f(x,y) = A^{T}x + Ax + B^{T}y$$
+    	
+    	\item \points{2} What is $\nabla_y f(x,y)$ in terms of the summations over indices \emph{and} vector notation?
+    	
+    	If we do the matrix multiplication (expanding it out), we have $y_{1}B_{11}x_{1} + y_{2}B_{21}x_{1} + ... + y_{n}B_{n1}x_{1}$.
+    	We can see then that: 
+    	$$\frac{\partial}{\partial y_k} = \sum_{i=1}^{n} B_{ki}x_{i}$$
+    	In vector form, we have:
+    	$$ \nabla_y f(x,y) = Bx$$
+    \end{enumerate}
+
+\end{aprob}
+\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
+\begin{aprob}\label{prob:matrixtype}
+    Show the following:
+    \begin{enumerate}
+        \item \points{2} Let $g : \R \rightarrow \R$ and $v, w \in \R^n$ such that $g(v_i) = w_i$. Find an expression for $g$ such that $\diag(v)^{-1} = \diag(w)$.
+        
+        For example, we can start with square matrices $\mat{W}$ and $\mat{V}$:
+        
+        $$\mat{W} = \mat{D} = \begin{bmatrix} w_1 & 0 \\ 0 & w_2 \end{bmatrix}$$
+        $$\mat{V} = \mat{D}^{-1} = \begin{bmatrix} \frac{1}{w_1} & 0 \\ 0 & \frac{1}{w_2} \end{bmatrix}$$
+        Then we can see that a general expression for $g$ would be:
+        $$g(v_i) = \frac{1}{w_i}$$
+        
+        \item \points{2} Let $\mat{A} \in R^{n \times n}$ be orthonormal and $x \in \R^n$. 
+        An orthonormal matrix is a square martix whose columns and rows are orthonormal vectors, such that $ \mat{A}\mat{A}^\top = \mat{A}^\top \mat{A} = {\bf I}$ where ${\bf I}$ is the identity matrix. 
+        Show that $||\mat{A}x||_2^2 = ||x||_2^2$.
+        
+        $$||\mat{A}x||_2^2 = (\mat{A}x)^T(\mat{A}x) = x^T\mat{A}^T\mat{A}x = x^T(\mat{I})x = x^Tx = ||x||_2^2$$
+        We have thus shown that $||\mat{A}x||_2^2 = ||x||_2^2$.
+
+        \item \points{2} Let $\mat{B} \in R^{n \times n}$ be invertible and symmetric. A symmetric matrix is a square matrix satisfying $\mat{B}=\mat{B}^\top$. Show that $\mat{B}^{-1}$ is also symmetric.
+        
+        From the problem statement, we have that $\mat{B}^T = \mat{B}$. We already know that $\mat{B}^{-1} \mat{B} = \mat{I}$.
+        
+        $$(\mat{B}^{-1})^T=(\mat{B}^{-1})^T\mat{B}^{-1}\mat{B}=(\mat{B}^{-1})^T \mat{B}^{T} (\mat{B}^{T})^{-1} = (\mat{B}\mat{B}^{-1})^T (\mat{B}^T)^{-1} = (\mat{B}^T)^{-1} = \mat{B}^{-1}$$
+        We have thus shown that $(\mat{B}^{-1})^T=\mat{B}^{-1}$ and this is the definition of symmetry.
+        
+        \item \points{2} Let $\mat{C} \in R^{n \times n}$ be positive semi-definite (PSD). A positive semi-definite matrix is a symmetric matrix satisfying $x^\top \mat{C} x \geq 0$ for any vector $x\in{\mathbb R}^n$. Show that its eigenvalues are non-negative.
+        
+        We start with the definition of the eigenvalue.
+        $$\mat{A}x = \lambda x$$
+        If we set $\mat{C} = \lambda$ and work with the inequality given in the question prompt, we have:
+        $$x^\top \lambda x \geq 0$$
+        $$x^\top x \lambda \geq 0$$
+        We also know that:
+        $$ x^\top x = ||x||_2^2$$
+        And we know that $||x||_2^2$ is non-negative. Working from our inequality, we have $||x||_2^2$ multiplied by $\lambda$ which is greater than or equal to 0. This means that $\lambda$ or the eigenvalues are non-negative.
+        
+    \end{enumerate}
+\end{aprob}
+
+\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
+
+\section*{Programming}
+\textbf{These problems are  available in a .zip file}, with some starter code. All coding questions in this class will have starter code.
+\textbf{Before attempting these problems, you will need to set up a Conda environment that you will use for every assignment in the course. Unzip the HW0-A.zip file and read the instructions in the README file to get started.}
+
+\begin{aprob} \label{prob:sumvecimp}
+    For $\nabla_x f(x,y)$ as solved for in Problem \ref{prob:sumvec}:
+    \begin{enumerate}
+        \item \points{1} Using native Python, implement the summation form.
+
+\begin{lstlisting}
+def vanilla_solution(x: Vector, y: Vector, A: Matrix, B: Matrix) -> Vector:
+    """Calculates gradient of f(x, y) with respect to x using vanilla python lists.
+    Where $$f(x, y) = x^T A x + y^T B x + c$$
+
+    Args:
+        x (Vector): a (n,) vector.
+        y (Vector): a (n,) vector.
+        A (Matrix): a (n, n) matrix.
+        B (Matrix): a (n, n) matrix.
+
+    Returns:
+        Vector: a resulting (n,) vector.
+    """
+    first_list = vanilla_matmul(vanilla_transpose(A),x)
+    second_list = vanilla_matmul(A,x)
+    third_list = vanilla_matmul(vanilla_transpose(B),y)
+
+    temp_list = [sum(value) for value in zip(first_list, second_list)]
+    final_list = [sum(value) for value in zip(temp_list, third_list)]
+    return final_list
+\end{lstlisting}
+
+        \item \points{1} Using NumPy, implement the vector form.
+
+\begin{lstlisting}
+def numpy_solution(
+    x: np.ndarray, y: np.ndarray, A: np.ndarray, B: np.ndarray
+) -> np.ndarray:
+    """Calculates gradient of f(x, y) with respect to x using numpy arrays.
+    Where $$f(x, y) = x^T A x + y^T B x + c$$
+
+    Args:
+        x (np.ndarray): a (n,) numpy array.
+        y (np.ndarray): a (n,) numpy array.
+        A (np.ndarray): a (n, n) numpy array.
+        B (np.ndarray): a (n, n) numpy array.
+
+    Returns:
+        np.ndarray: a resulting (n, ) numpy array.
+    """
+    return A.transpose() @ x + A @ x + B.transpose() @ y
+\end{lstlisting}
+
+        \item \points{1} Report the difference in wall-clock time for parts a-b, and discuss reasons for the observed difference. 
+
+\begin{figure}[htp] 
+    \centering
+    \vspace*{-0.1in}
+    \includegraphics[width=1.\textwidth]{./figs/trackingtimediff.png}
+    \caption{Report of time differences}
+    \label{figs:time_diff.png}
+\end{figure}
+
+        At n = 1000, we see that the time difference between Vanilla implementation and NumPy implementation is 334.991 ms. NumPy implementation is significantly faster than Vanilla implementation. From the figure above, the differences between vanilla implementation and NumPy implementation are [-0.257 ms, 8.348 ms, 90.541 ms, 334.991 ms]. One reason for this observed difference is that with NumPy, we are using NumPy arrays, which "is a collection of homogeneous data-types that are stored in contiguous memory locations...a list in Python is a collection of heterogenous data types stored in non-contiguous memory locations" (source is \href{https://www.geeksforgeeks.org/}{Geeks for Geeks} article). NumPy also uses parallelism. With our Vanilla solution, we could have made it even slower by using a for loop.
+        
+    \end{enumerate}
+\end{aprob}
+\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
+\begin{aprob}
+    Two random variables $X$ and $Y$ have equal  distributions if their CDFs, $F_X$ and $F_Y$, respectively, are equal, i.e. for all $x$, $ \abs{F_X(x) - F_Y(x)} = 0$. 
+    The central limit theorem says that the sum of $k$ independent, zero-mean, variance $1/k$ random variables converges to a (standard) Normal distribution as $k$ tends to infinity.  
+    We will study this phenomenon empirically (you will use the Python packages Numpy and Matplotlib).  Each of the following subproblems includes a description of how the plots were generated; these have been coded for you. The code is available in the .zip file. In this problem, you will add to our implementation to explore {\bf matplotlib} library, and how the solution depends on $n$ and $k$.
+    
+    \begin{enumerate}
+    \item \points{2}  \label{prob:cltcdf:gaussian} For $i=1,\ldots,n$ let $Z_i \sim \mathcal{N}(0,1)$. Let $F(x)$ denote the true CDF from which each $Z_i$ is drawn (i.e.,  Gaussian). Define  $\widehat{F}_n(x) = \frac{1}{n} \sum_{i=1}^n \1\{ Z_i \leq x)$ and we will choose $n$ large enough such that, for all $x \in \R$,
+    \[
+    	\sqrt{\E{\round{\widehat{F}_n(x)-F(x)}^2 }} \leq 0.0025\ .
+    \]
+    Plot $\widehat{F}_n(x)$ from $-3$ to $3$.
+    
+    $$n = 40000$$
+    
+    The empirical CDF changes with k according to the central limit theorem (as expected) where as k tends to infinity, we should see convergence to a (standard) normal distribution. From the plot, we indeed see that this is the case.
+    
+    \item  \points{2}  Define $Y^{(k)} = \frac{1}{\sqrt{k}} \sum_{i=1}^k B_i$ where each $B_i$ is equal to $-1$ and $1$ with equal probability and the $B_i$'s are independent.
+    We know that $\frac{1}{\sqrt{k}} B_i$ is zero-mean and has variance $1/k$.  \label{prob:cltcdf:k} For each $k \in \set{1, 8, 64, 512}$ we will generate $n$ (same as in part a) independent copies $Y^{(k)}$ and plot their empirical CDF on the same plot as part~\ref{prob:cltcdf:gaussian}.
+    \end{enumerate}
+    
+    \begin{figure}[htp] 
+    \centering
+    \vspace*{-0.1in}
+    \includegraphics[width=0.6\textwidth]{./figs/Q10screenshot.png}
+    \label{figs:Q10screenshot.png}
+    \end{figure}
+    
+\end{aprob}
+
+\end{document}
