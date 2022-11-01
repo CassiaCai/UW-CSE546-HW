@@ -1,0 +1,555 @@
+\documentclass{article}
+\usepackage{import}
+\usepackage[ruled]{algorithm2e}
+\usepackage[shortlabels]{enumitem}
+\subimport*{}{macro}
+
+\setlength\parindent{0px}
+
+\begin{document}
+\setcounter{aprob}{0}
+\title{Homework \#2A}
+\author{
+    \normalsize{CSE 546: Machine Learning}\\
+    \normalsize{Cassia Cai}\\
+    \normalsize{October 31, 2022}\\
+}
+\date{{}}
+\maketitle
+
+Collaborators: Apoorva Kalaskar, Madeleine Grunde-McLaughlin, and Aaleyah Lewis
+
+\section*{Conceptual Questions}
+
+\begin{aprob}
+    The answers to these questions should be answerable without referring to external materials.
+    Briefly justify your answers with a few words.
+    \begin{enumerate}
+      \item \points{2} Compared to L2 norm penalty, explain why a L1 norm penalty is more likely to result in sparsity (a larger number of 0s) in the weight vector.
+      
+      Compared to L2 norm penalty, which adds a ball-shaped region constraint and finds dense solutions, the L1 norm adds a diamond-shaped region constraint. This diamond-shaped region constraint is more likely to produce a sparse model (where at the intersection, one component of the solution is 0). This is due to the geometric properties of diamonds, which have corners where one component is 0. Reference is slide 19 of Lecture 7.
+      
+      \item \points{2} In at most one sentence each, state one possible upside and one possible downside of using the following regularizer: $\left(\sum_{i}\left|w_{i}\right|^{0.5}\right)$.
+      
+      This regularizer is non-convex (downside). This regularizer produces an even sparser solution than the L1 norm penalty (upside).
+      
+      \item \points{2} True or False: If the step-size for gradient descent is too large, it may not converge.
+      
+      True. If the step-size for gradient descent is too large, it may not converge. If our step-size jump is too large, we might jump to higher values that are further from the minimum.
+      
+      \item \points{2} In at most one sentence each, state one possible advantage of SGD over GD (gradient descent), and one possible disadvantage of SGD relative to GD.
+      
+      SGD is less computationally demanding, while GD is more computationally demanding. SGD might take longer to converge to some minimum value than GD. However, fewer steps are needed to converge to the minimum with GD compared to SGD.
+      
+    \end{enumerate}
+    
+\end{aprob}
+\newpage 
+
+\section*{Convexity and Norms }
+
+\begin{aprob}
+    A \emph{norm} $\|\cdot\|$ over $\R^n$ is defined by the properties:
+    (\textit{i}) non-negativity: $\|x\|\geq 0$ for all $x \in \R^n$ with equality if and only if $x=0$,
+    (\textit{ii}) absolute scalability: $\|a \, x\| = |a| \, \|x\|$ for all $a \in \R$ and $x \in \R^n$, 
+    (\textit{iii}) triangle inequality: $\|x+y\| \leq \|x\| + \|y\|$ for all $x,y \in \R^n$.
+    \begin{enumerate}
+      \item \points{3} Show that $f(x) = \left( \sum_{i=1}^n |x_i| \right)$ is a norm. (Hint: for (\textit{iii}), begin by showing that $|a+b|\leq |a| + |b|$ for all $a,b \in \R$.)
+      
+      We first must check that $f(x)$ abides by the three properties: non-negativity, absolute scalability, and triangle inequality. 
+      
+      From the hint, we can show that $|a+b|\leq |a| + |b|$.
+      
+      \begin{equation}
+          |a+b|^2 = a^2 + 2ab + b^2 \leq |a|^2 + 2|a||b| + |b|^2 = (|a|+|b|)^2
+      \end{equation}
+      This leads to the following:
+        \begin{equation}
+          |a+b|\leq |a| + |b|
+      \end{equation}
+      First, let's check non-negativity: $x_i \in \R $ and $|x_i| \geq 0 $ for all $i$:
+      \begin{equation}
+          f(x) = \|x\| = \sum_{i=1}^{n} |x_i| \geq 0
+      \end{equation}
+      This is true for all $x \in \R^n$ and $f(x) = 0$ if and only if $x = 0$
+      
+      Next, let's check absolute scalability:
+      \begin{equation}
+        f(ax) = \|ax\| = \sum_{i=1}^{n} |a x_i| = \sum_{i=1}^{n} |a||x_i| = |a|\sum_{i=1}^{n}|x_i| = |a|\|x\| = |a|f(x)
+      \end{equation}
+      
+      Finally, let's check the triangle inequality:
+      \begin{equation}
+        f(x + y) = \|x + y\| = \sum_{i=1}^{n} |x_i + y_i| \leq \sum_{i=1}^{n} (|x_i| + |y_i|) = \sum_{i=1}^{n} |x_i| + \sum_{i=1}^{n} |y_i| = \|x\| + \|y\| = f(x) + f(y)
+      \end{equation}
+      This leads to the following:
+      \begin{equation}
+        f(x + y) \leq f(x) + f(y)
+      \end{equation}
+      
+      
+      We have thus shown that $f(x) = \sum_{i=1}^{n} |x_i| $ is a norm.
+      
+      \item \points{2} Show that $g(x) = \left(\sum_{i=1}^n |x_i|^{1/2}\right)^2$ is not a norm. (Hint: it suffices to find two points in $n=2$ dimensions such that the triangle inequality does not hold.)
+      
+      Let's start from the hint and consider 2 points $ x = [0,c]^T$ and $y = [c,0]^T$ where $c$ is some positive constant.
+      \begin{equation}
+      g(x) + g(y) = 2c
+      \end{equation}
+      \begin{equation}
+      g(x+y) = 4c
+      \end{equation}
+      We thus have $g(x+y) \geq g(x) + g(y)$
+      
+    \end{enumerate} 
+    Context: norms are often used in regularization to encourage specific behaviors of solutions. If we define  $\| x \|_p := \left( \sum_{i=1}^n |x_i|^{p} \right)^{1/p}$ then one can show that $\| x \|_p$ is a norm for all $p \geq 1$. The important cases of $p=2$ and $p=1$ correspond to the penalty for ridge regression and the lasso, respectively. \\
+
+\end{aprob}
+\newpage 
+
+\begin{aprob}
+    \points{2} A set $A \subseteq \R^n$ is \emph{convex} if $\lambda x + (1-\lambda) y \in A$ for all $x,y\in A$ and $\lambda \in [0,1]$.
+    For each of the grey-shaded sets below (I-II), state whether each one is convex, or state why it is not convex using any of the points $a,b,c,d$ in your answer. 
+    
+    
+    - I is not convex. We exit the image when we try to connect $b$ and $c$.
+    
+    - II is not convex because when $(x,y) = (a,d)$, $\lambda x + (1-\lambda) y$ does not hold.
+
+\end{aprob}
+
+\begin{aprob}
+    \points{2} We say a function $f: \R^d \rightarrow \R$ is convex on a set $A$ if $f(\lambda x + (1-\lambda) y) \leq \lambda f(x) + (1-\lambda) f(y)$ for all $x,y\in A$ and $\lambda \in [0,1]$. For each of the functions shown below (I-II), state whether each is convex on the specified interval, or state why not with a counterexample using any of the points $a,b,c,d$ in your answer.
+
+    \begin{enumerate}
+        \item Function in panel I on $[a,c]$
+
+The function is convex as there are no points that exit the graph on $[a,c]$.
+
+        \item Function in panel II on $[a,d]$
+        
+The function $[a,d]$ is not convex. If we try connecting $f(a)$ and $f(d)$, we exit the graph. 
+
+    \end{enumerate}
+
+\end{aprob}
+
+\newpage
+\section*{Lasso on a Real Dataset}
+Given $\lambda >0$ and data $\Big (x_i,y_i \Big)_{i=1}^n$, the Lasso is the problem of solving
+\begin{equation*}\label{eq:lasso}
+  \arg\min_{{w}\in \R^d, b \in \R} \sum_{i=1}^n { (x_i^T {w} + b - {y}_i)^2 }
+    + \lambda \sum_{j=1}^d |{w}_j| 
+\end{equation*}
+where $\lambda$ is a regularization parameter. Implement the coordinate descent method shown in Algorithm~\ref{alg:cd} to solve the Lasso problem in \texttt{coordinate\_descent\_algo.py}. 
+
+\begin{algorithm}[h]
+    \caption{Coordinate Descent Algorithm for Lasso}\label{alg:cd}
+    \While{not converged}{
+      $b \leftarrow \frac{1}{n}\sum_{i=1}^n \left({y}_i - \sum_{j=1}^d {w}_j {x}_{i,j}\right)$\\ 
+      \For{$k \in \{1,2,\cdots d\}$} {
+        $a_k\leftarrow 2 \sum_{i=1}^n {x}_{i,k}^2$ \\   
+        $c_k\leftarrow 2 \sum_{i=1}^n {x}_{i,k} \left({y}_i -(b + \sum_{j\neq k} {w}_j {x}_{i,j} )\right)$ \\
+        ${w}_k \leftarrow 
+        \left\{
+        \begin{array}{ll}
+          (c_k+\lambda) / a_k & c_k < -\lambda\\
+          0 & c_k\in [-\lambda, \lambda]\\
+          (c_k-\lambda) / a_k & c_k > \lambda\\
+        \end{array}  
+        \right.
+        $
+      }
+    }
+\end{algorithm}
+
+\begin{aprob}
+    We will first try out your solver with some synthetic data.
+    A benefit of the Lasso is that if we believe many features are irrelevant for predicting ${y}$, the Lasso can be used to enforce a sparse solution, effectively differentiating between the relevant and irrelevant features.
+    Suppose that ${x} \in \mathbb{R}^d, y \in \mathbb{R}, k < d$, and data are generated independently according to the model $y_i = w^T x_i + \epsilon_i$ where
+    \begin{align}
+        w_j = \begin{cases} j/k & \text{if } j \in \{1,\dots,k\} \\
+        0 & \text{otherwise}
+        \end{cases}\label{eqn:lasso-model}
+    \end{align} 
+    and $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$ is noise (note that in the model above $b=0$). We can see from Equation \eqref{eqn:lasso-model} that since $k < d$ and $w_j = 0$ for $j > k$, the features $k + 1$ through $d$ are irrelevant for predicting $y$.
+    
+    Generate a dataset using this model with $n = 500, d = 1000, k = 100,$ and $\sigma = 1$. You should generate the dataset such that each $\epsilon_i \sim \mathcal{N}(0, 1)$ , and $y_i$ is generated as specified above. You are free to choose a distribution from which the $x$'s are drawn, but make sure standardize the $x$'s before running your experiments.
+
+    \begin{enumerate}
+        \item \points{10} With your synthetic data, solve multiple Lasso problems on a regularization path, starting at $\lambda_{max}$ where no features are selected and decreasing $\lambda$ by a constant ratio (e.g., 2) until nearly all the features are chosen. 
+        In plot 1, plot the number of non-zeros as a function of $\lambda$ on the x-axis.
+        
+        See plot on the next page.
+        
+        \begin{figure}[htp] 
+        \centering
+        \vspace*{-0.1in}
+        \includegraphics[width=0.7\textwidth]{figs/hw2_5a.png}
+        \label{figs:hw2_5a.png}
+        \end{figure}
+        
+        \item \points{10} For each value of $\lambda$ tried, record values for false discovery rate (FDR) (number of incorrect nonzeros in $\widehat{w}$/total number of nonzeros in $\widehat{w}$) and true positive rate (TPR)
+        (number of correct nonzeros in $\widehat{w}$/k). Note: for each $j$, $\widehat{w}_j$ is an incorrect nonzero if and only if $\widehat{w}_j \neq 0$ while $w_j = 0$.
+        In plot 2, plot these values with the x-axis as FDR, and the y-axis as TPR.
+          
+        Note that in an ideal situation we would have an (FDR,TPR) pair in the upper left corner. We can always trivially achieve $(0,0)$ and $(\tfrac{d-k}{d},1)$.
+          
+          See plot on the next page.
+          
+        \begin{figure}[htp] 
+        \centering
+        \vspace*{-0.1in}
+        \includegraphics[width=0.7\textwidth]{figs/hw2_5b.png}
+        \label{figs:hw2_5b.png}
+        \end{figure}
+        
+        \item \points{5} Comment on the effect of $\lambda$ in these two plots in 1-2 sentences.
+        
+        A larger $\lambda$ means that we have more zeroes in our weight vector. A smaller $\lambda$ means that more weights in our weight vector will be non-zero, so that the model will use more features. From our second plot, we see that a too large $\lambda$ leads to 0 solution (poor performance). If $\lambda$ is too small, then we have a high FDR. As the hint says, we want to choose $\lambda$ in the upper left corner. Our choice of $\lambda$ should preserve a sparse model that is still accurate.
+    
+    \begin{lstlisting}
+def precalculate_a(X: np.ndarray) -> np.ndarray:
+    return 2*np.sum(X*X, axis = 0)
+
+def step(X, y, weight, a, _lambda):
+    n,d = X.shape
+    w = weight
+    b = np.mean(y-np.dot(X,w))
+    for k in range(d):
+        xk = X[:,k]
+        w[k] = 0.0
+        ck = 2.0 * np.dot(xk, y - (b + np.dot(X,w)))
+        if ck < -_lambda:
+            w[k] = (ck + _lambda)/a[k]
+        elif ck > _lambda:
+            w[k] = (ck - _lambda)/a[k]
+    return (w,b)
+
+def loss(X, y, weight, bias, _lambda):
+    return np.linalg.norm(X@weight+bias-y)**2+_lambda * np.linalg.norm(weight,1)
+
+def train(X,y,_lambda,convergence_delta,start_weight,):
+    n, d = X.shape
+    if start_weight is None:
+        start_weight = np.zeros(d)
+    old_w = start_weight + np.inf 
+    a = precalculate_a(X)
+    while convergence_criterion(start_weight, old_w, convergence_delta) is False:
+        old_w = np.copy(start_weight)
+        w = start_weight
+        train_weights_and_bias = step(X, y, w, a, _lambda)
+    return train_weights_and_bias
+
+def convergence_criterion(weight, old_w, convergence_delta):
+    max_abs_change = np.linalg.norm(weight - old_w, ord=np.inf)
+    if max_abs_change > convergence_delta:
+        return False
+
+def main():
+    sigma, n, d, k, no_iter = 1, 500, 1000, 100, 5
+    rgn = np.random.normal(0, sigma**2.0, size=n) # random gaussian noise
+    x = np.random.normal(size = (n,d))
+    w = np.zeros((d, ))
+    for j in range(1, k+1): 
+        w[j-1] = j/k
+    y = x @ w + rgn
+    lambda_max = np.max(2 * np.sum(x.T * (y - np.mean(y)) , axis=0))
+    lambdas = [lambda_max/(2**i) for i in range(no_iter)]
+    convergence_delta = 1e-4
+    noNumZeros, fdr, tpr = [], [], []
+    for lambda_reg in lambdas:
+        w = train(x, y, lambda_reg, 1e-4, None)[0]
+        notZeros = np.count_nonzero(w); noNumZeros.append(notZeros)
+        correctNonZeros = np.count_nonzero(w[:k])
+        incorrectNonZeros = np.count_nonzero(w[k+1:])
+        try:
+            fdr.append(incorrectNonZeros/notZeros)
+        except ZeroDivisionError:
+            fdr.append(0)
+            
+        tpr.append(correctNonZeros/k)
+
+    # part a
+    plt.figure(figsize = (10,5))
+    plt.plot(lambdas, noNumZeros)
+    plt.xscale('log')
+    plt.title('Nonzero Count VS Lambda')
+    plt.xlabel('lambda')
+    plt.ylabel('nonzero w elements')
+    plt.show()
+
+    # part b
+    plt.figure(figsize = (10,5))
+    plt.plot(fdr, tpr)
+    plt.title('tpr VDS fdr')
+    plt.xlabel('False Discovery Rate')
+    plt.ylabel('True Positive Rate')
+    plt.show()
+
+if __name__ == "__main__":
+    main()
+    \end{lstlisting}
+  \end{enumerate}
+  
+  \end{aprob}
+  
+\begin{aprob}
+    \label{crime} 
+    We'll now put the Lasso to work on some real data in \texttt{crime\_data\_lasso.py}. .  Download the training data set ``crime-train.txt'' and the test data set ``crime-test.txt'' from the website. Store your data in your working directory, ensure you have the \texttt{pandas} library for Python installed, and read in the files with:
+    
+    \begin{verbatim}
+        import pandas as pd
+        df_train = pd.read_table("crime-train.txt")
+        df_test = pd.read_table("crime-test.txt")
+    \end{verbatim}
+
+    This stores the data as Pandas \texttt{DataFrame} objects. \texttt{DataFrame}s are similar to Numpy \texttt{array}s but more flexible; unlike \texttt{array}s, \texttt{DataFrame}s store row and column indices along with the values of the data. Each column of a \texttt{DataFrame} can also store data of a different type (here, all data are floats). 
+    Here are a few commands that will get you working with Pandas for this assignment:
+
+    \begin{verbatim}
+        df.head()                   # Print the first few lines of DataFrame df.
+        df.index                    # Get the row indices for df.
+        df.columns                  # Get the column indices.
+        df[``foo'']                # Return the column named ``foo''.
+        df.drop(``foo'', axis = 1)  # Return all columns except ``foo''.
+        df.values                   # Return the values as a Numpy array.
+        df[``foo''].values         # Grab column foo and convert to Numpy array.
+        df.iloc[:3,:3]              # Use numerical indices (like Numpy) to get 3 rows and cols.
+    \end{verbatim}
+
+    The data consist of local crime statistics for 1,994 US
+    communities. The response $y$ is the rate of violent crimes reported per capita in a community. The name of the response variable is \texttt{ViolentCrimesPerPop}, and it is held in the first column of \texttt{df\_train} and \texttt{df\_test}. There are 95 features. These
+    features include many variables.
+    
+    Some features are the consequence of complex political processes, such as the size of the police force and other systemic and historical factors. Others are demographic
+    characteristics of the community, including self-reported statistics about race, age, education, and employment drawn from Census reports.\\
+    
+    The goals of this problem are threefold: ($i$) to encourage you to think about how data collection processes affect the resulting model trained from that data; ($ii$) to encourage you to think deeply about models you might train and how they might be misused; and ($iii$) to see how Lasso encourages sparsity of linear models in settings where $d$ is large relative to $n$. {\bf We emphasize that training a model on this dataset can suggest a degree of correlation between a community's demographics and the rate at which a community experiences and reports violent crime. We strongly encourage students to consider why these correlations may or may not hold more generally, whether correlations might result from a common cause, and what issues can result in misinterpreting what a model can explain.}\\
+
+    The dataset is split into a training and test set with 1,595 and 399 entries, respectively\footnote{The features have been standardized to have mean 0 and variance 1.}. 
+    We will use this training set to fit a model to predict
+    the crime rate in new communities and evaluate model performance on the test set.  As there are a considerable number of input variables and fairly few training observations, overfitting is a serious issue.
+    In order to avoid this, use the coordinate descent Lasso algorithm implemented in the previous problem. 
+
+    \begin{enumerate}
+        \item \points{4} Read the documentation for the originalcversion of this dataset: \url{http://archive.ics.uci.edu/ml/datasets/communities+and+crime}. Report 3 features included in this dataset for which historical \emph{policy} choices in the US would lead to variability in these features. As an example, the \emph{number of police} in a community is often the consequence of decisions made by governing bodies, elections, and amount of tax revenue available to decision makers.
+        
+        The police operating budget (per population) is often a consequence of policy choices. The number of kinds of drugs seized is also probably affected by policies. The number of officers assigned to special drug units is also probably affected by policies. I think that numbers related to the police force or drugs are likely to have been influenced by policy decisions.
+        
+        \item \points{4} Before you train a model, describe 3 features in the dataset which might, if found to have nonzero weight in model, be interpreted as \emph{reasons} for higher levels of violent crime, but which might actually be a \emph{result} rather than (or in addition to being) the cause of this violence.
+        
+        Features related to requests might actually be a result rather than the cause of violent crime. This is because whenever there is a request for police/help, it is likely because of some form of crime. The request itself is very unlikely to be the cause of the crime. So the features are: LemasTotReqPerPop (total requests for police per 100K population), LemasTotalReq (total requests for police), and PolicReqPerOfficg (total requests for police per police officer).
+        
+    \end{enumerate}
+
+    Now, we will run the Lasso solver. Begin with $\lambda = \lambda_{\max}$. Initialize all weights to $0$. Then, reduce $\lambda$ by a factor of 2 and run again, but this time initialize $\hat{{w}}$ from your $\lambda = \lambda_{\max}$ solution as your initial weights, as described above. Continue the process of reducing $\lambda$ by a factor of 2 until $\lambda < 0.01$.
+    For all plots use a log-scale for the $\lambda$ dimension (Tip: use
+    \verb|plt.xscale('log')|).
+    \\
+    
+    
+    \begin{enumerate}
+        \item[c.] \points{4} Plot the number of nonzero weights of each solution as a function of $\lambda$.
+        
+        \begin{figure}[htp] 
+        \centering
+        \vspace*{-0.1in}
+        \includegraphics[width=0.7\textwidth]{figs/hw2_6c.png}
+        \label{figs:hw2_6c.png}
+        \end{figure}
+        
+        \item[d.] \points{4} Plot the regularization paths (in one plot) for the coefficients for input variables \texttt{agePct12t29}, \texttt{pctWSocSec}, \texttt{pctUrban}, \texttt{agePct65up}, and \texttt{householdsize}.
+        
+        \begin{figure}[htp] 
+        \centering
+        \vspace*{-0.1in}
+        \includegraphics[width=0.7\textwidth]{figs/hw2_6d.png}
+        \label{figs:hw2_6d.png}
+        \end{figure}
+        
+        \item[e.] \points{4} On one plot, plot the squared error on the training and test data as a function of $\lambda$.
+        
+        \begin{figure}[htp] 
+        \centering
+        \vspace*{-0.1in}
+        \includegraphics[width=0.7\textwidth]{figs/hw2_6e.png}
+        \label{figs:hw2_6c.png}
+        \end{figure}
+        
+        \item[f.] \points{4} Sometimes a larger value of $\lambda$ performs nearly as well as a smaller value, but a larger value will select fewer variables and perhaps be more interpretable.  Inspect the weights $\hat{w}$ for $\lambda = 30$.  Which feature had the largest (most positive) Lasso coefficient? What about the most negative? Discuss briefly.
+        
+        The largest is PctIlleg (percentage of kids born to never married), which is 0.06873. The smallest is PctKids2Par (percentage of kids in family housing with two parents), which is -0.06922. PctIlleg has the highest weight, and indicates that kids born to never married parents are predicted to be associated with high violent crimes per population. This may be perhaps that kids born to never married parents might not have the same amount of stability as kids in family housing with two parents (which has a negative weight).   
+        
+        \item[g.] \points{4} Suppose there was a large negative weight on \texttt{agePct65up} and upon seeing this result, a politician suggests policies that encourage people over the age of 65 to move to high crime areas in an effort to reduce crime. What is the (statistical) flaw in this line of reasoning? (Hint: fire trucks are often seen around burning buildings, do fire trucks cause fire?)
+        
+        Correlation does not necessarily mean causation. So a large negative weight on agePct65up indicates that there is a high correlation between agePct65up and ViolentCrimesPerPop. agePct65up (percentage of population that is 65 and over) might not the reason for a lower crime rate. Let us imagine a region with a high crime rate already. Perhaps the case is that people over 65 move out of these regions and into regions with lower crime rates. 
+    \end{enumerate}  
+
+\begin{lstlisting}
+
+def main():
+    df_train, df_test = load_dataset("crime")
+    x_df = df_train .drop('ViolentCrimesPerPop' , axis=1)
+    y_df = df_train['ViolentCrimesPerPop']
+    x = np.asarray(df_train .drop('ViolentCrimesPerPop' , axis=1))
+    y = np.asarray(df_train['ViolentCrimesPerPop'])
+    n, d = x.shape
+    x_test = np.asarray(df_test .drop('ViolentCrimesPerPop' , axis=1))
+    y_test = np.asarray(df_test['ViolentCrimesPerPop'])
+
+    lambda_max = np.max(2 * np.sum(x.T * (y - np.mean(y)) , axis=0))
+    w = np.zeros((d, )) 
+
+    no_iter = 16
+    lambdas = [lambda_max/(2**i) for i in range(no_iter)]
+    convergence_delta = 1e-4
+
+    noNumZeros, train_mse, test_mse = [], [], []
+    feat_names = ['agePct12t29', 'pctWSocSec', 'pctUrban', 'agePct65up', 'householdsize']
+    feat_indices = [x_df.columns.get_loc(i) for i in feat_names]
+    agePct12t29_ls, pctWSocSec_ls, pctUrban_ls = [], [], [] 
+    agePct65up_ls, householdsize_ls = [], []
+    for lambda_reg in lambdas:
+        w = train(x, y, lambda_reg, 1e-4, None)[0]
+        b = train(x, y, lambda_reg, 1e-4, None)[1]
+        notZeros = np.count_nonzero(w); noNumZeros.append(notZeros)
+        y_preds = x.dot(w) + b
+        y_test_preds = x_test.dot(w) + b
+        train_mse_val = np.mean((y-y_preds)**2)
+        test_mse_val = np.mean((y_test-y_test_preds)**2)
+        train_mse.append(train_mse_val)
+        test_mse.append(test_mse_val)
+        agePct12t29_ls.append(w[0])
+        pctWSocSec_ls.append(w[1])
+        pctUrban_ls.append(w[2])
+        agePct65up_ls.append(w[3])
+        householdsize_ls.append(w[4])
+
+    # part a
+    plt.figure(figsize = (10,5))
+    plt.plot(lambdas, noNumZeros)
+    plt.xscale('log')
+    plt.title('Nonzero Count VS Lambda')
+    plt.xlabel('lambda')
+    plt.ylabel('nonzero w elements')
+    plt.show()
+
+    # part b
+    plt.figure(figsize = (10,5))
+    plt.plot(lambdas, agePct12t29_ls, label='agePct12t29')
+    plt.plot(lambdas, pctWSocSec_ls, label='pctWSocSec')
+    plt.plot(lambdas, pctUrban_ls, label='pctUrban')
+    plt.plot(lambdas, agePct65up_ls, label='agePct65up')
+    plt.plot(lambdas, householdsize_ls, label='householdsize')
+    plt.xscale('log')
+    plt.xlabel('lambda')
+    plt.ylabel('Regularization Paths')
+    plt.legend ()
+    plt.show()
+
+    # part c
+    plt.figure(figsize=(10, 5))
+    plt.plot(lambdas, train_mse , label='Train') 
+    plt.plot(lambdas, test_mse , label='Test') 
+    plt.xscale ('log')
+    plt.xlabel('lambda')
+    plt.ylabel('Mean Squared Error')
+    plt.legend ()
+    plt.show()
+
+    # part d
+    lambda_val = 30
+    w = train(x, y, lambda_val, 1e-4, None)[0]
+    # print(np.argmax(w))
+    # print(np.argmin(w))
+    print(x_df.columns[np.argmax(w)])
+    print(np.max(w))
+    print(x_df.columns[np.argmin(w)])
+    print(np.min(w))
+
+if __name__ == "__main__":
+    main()
+    \end{lstlisting}
+\end{aprob}
+\newpage 
+\section*{Gradient Descent} 
+\begin{aprob}
+   Consider an experiment in which you have $n$ observations and corresponding labels $\{x_i, y_i\}_{i=1}^n$ such that $x_i \in \mathbb{R}^d$, $y_i \in \mathbb{R}$. Let $X \in \mathbb{R}^{n\times d}$ be the data matrix containing $x_i^T$ as rows. For this question, assume $X$ has full rank, such that $X^TX$ is invertible. \\
+   
+   As we saw before, in linear regression we would like to come up with a model $w \in \mathbb{R}^d$ that minimizes the loss
+    \begin{align*}
+    L(w) = ||y-Xw||_2^2 = (y-Xw)^T(y-Xw)
+    \end{align*} 
+    We know from lecture that the optimal value for $w$ is $w^* = (X^TX)^{-1}X^Ty$. However, we can also use gradient descent instead of calculating this directly. In this question, we will start to prove that for a good choice of the learning rate, the gradient descent algorithm arrives at the same optimal result.
+    \begin{enumerate}
+        \item \points{5} Show (step-by-step) that the gradient $\nabla_w L(w) \in \mathbb{R}^d$ is equal to 
+        $$\nabla_w L(w) = 2(X^TX)w - 2X^Ty$$
+        
+        From lecture, we had $\nabla_{w}(Aw+b)^T(Aw_b) = 2A^T(Aw+b)$. In this case, we have $A = -X$ and $b = y$. We can thus find:
+    
+     \begin{equation}
+     \nabla_{w}L(w) = (-Xw_y)^T(-Xw+y) = -2X^T(-Xw + y) = 2(X^TX)w - 2X^Ty
+     \end{equation}
+        
+        \item \points{3} In gradient descent, we start with a vector $w_0$ and iteratively update it with the rule $$w_{k+1} = w_k - \alpha\nabla_{w_k}L(w_k)$$
+        Using this rule, show that 
+        $$||w_{k+1}-w^*|| = ||(I-2\alpha X^TX)(w_k-w^*)||$$
+        (Hint: We have that $\nabla_{w^*}L(w^*) = 0$, thus you can replace $\nabla_{w_k}L(w_k)$ with $\nabla_{w_k}L(w_k)-\nabla_{w^*}L(w^*)$ in your solution, and then expand the definitions.)
+
+    \begin{equation}
+        w_{k+1} = w_k - \alpha\nabla_{w_k}L(w_k)
+    \end{equation}
+    \begin{equation}
+        w_{k+1} = w_k - \alpha(\nabla_{w_k}L(w_k)-\nabla_{w^*}L(w^*))
+    \end{equation}
+    \begin{equation}
+        w_{k+1} = w_k - \alpha\nabla_{w_k}L(w_k)+\alpha\nabla_{w^*}L(w^*) = w_k - \alpha(2(X^TX)w_k - 2X^Ty) + \alpha(2(X^TX)w^* - 2X^Ty)
+    \end{equation}
+    \begin{equation}
+        w_{k+1} = w_k - \alpha2w_k(X^TX) - \alpha2(X^TX)w^*
+    \end{equation}
+    \begin{equation}
+        w_{k+1} - w^* = w_k - \alpha2w_k(X^TX) - \alpha2(X^TX)w* = w_k - \alpha2(X^TX)(w_k - w^*) - w^*
+    \end{equation}
+    \begin{equation}
+        w_{k+1} - w^* = (1-2\alpha X^TX)(w_k - w^*)
+    \end{equation}
+    Hence, we have shown that:
+    \begin{equation}
+    ||w_{k+1}-w^*|| = ||(I-2\alpha X^TX)(w_k-w^*)||
+    \end{equation}
+
+        \item\points{4} Since $X^TX$ is positive semi-definite, all its eigenvalues are nonnegative. Let $h$ be the smallest, and $H$ be the largest eigenvalue of $X^TX$. Using the previous part, show that $$
+        ||w_{k+1}-w^*|| \leq \rho||w_k-w^*||$$ 
+        where $\rho = \max(|1-2\alpha h|, |1-2\alpha H|)$. 
+        
+        \textit{Hints:}
+        \begin{itemize}
+            \item Let $\lambda$ be the eigenvalue of a matrix $A \in \mathbb{R}^{d\times d}$ that has the largest magnitude. Then for any vector $x \in \mathbb{R}^d$ we have $||Ax|| \leq |\lambda|\cdot||x||$.) 
+            \item If $\gamma_1,\dots,\gamma_d$ are the eigenvalues of a matrix $A$, then $\gamma_1+1,\dots,\gamma_d+1$ are the eigenvalues of $A + I$).
+        \end{itemize}
+        
+        Let us start with: 
+    \begin{equation}
+        ||w_{k+1}-w^*|| = ||(I-2\alpha X^TX)(w_k-w^*)||
+    \end{equation}
+    
+    where $(I-2\alpha X^TX) = A$ and $(w_k-w^*) = x$. From our hint, we have:
+    
+    \begin{equation}
+    ||Ax|| \leq |\lambda|\cdot||x|| = |\lambda|\cdot||(w_k-w^*)||
+    \end{equation}
+    We can then tell that $|\lambda| = \rho = \max(|1-2\alpha h|, |1-2\alpha H|)$. This problem is about recognizing that from Equation 17, we can say the items in the first bracket are A and the items in the second bracket are x and then work from the hint.
+
+    \end{enumerate}
+\end{aprob}
+
+\section*{Administrative}
+\begin{aprob}
+\begin{enumerate}
+    \item \points{2} About how many hours did you spend on this homework? About 10.
+\end{enumerate}
+\end{aprob}
+
+\end{document}
